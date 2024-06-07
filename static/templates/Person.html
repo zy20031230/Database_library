@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>Library - Book Search and Borrow</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="shortcut icon" href="/static/img/ustcblack.jpg">
+    <link rel="stylesheet" href="/static/css/bootstrap-grid.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    {% comment %} <link rel="stylesheet" href="/static/css/sidebar.css"> {% endcomment %}
+    <link rel="stylesheet" href="/static/css/styles.css">
+    {% comment %} <link href="/static/css/video-js.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/bootstrap-datepicker.css">
+    <link rel="stylesheet" href="/static/css/my.css"> {% endcomment %}
+</head>
+
+
+<body class="has-sidebar has-fixed-sidebar-and-header">
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar-->
+        <div class="border-end bg-white" id="sidebar-wrapper">
+            <div 
+                class="sidebar-heading border-bottom bg-light">USTC Library
+            </div>
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/home/">home</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/home/books">BOOKS</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/home/Person">借阅信息</a>
+            </div>
+        </div>
+
+        <div id="page-content-wrapper">
+            <!-- Top navigation-->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="sidebarToggle">Toggle Menu</button>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                            <li class="nav-item active"><a class="nav-link" href="#!">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#!">Link</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="#!">Action</a>
+                                    <a class="dropdown-item" href="#!">Another action</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/home/logout">退出登入</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- Page content-->
+            <section class="container-fluid">
+                <h2 class="mt-4">预定信息</h2>    
+                <table class="book-table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>作者</th>
+                            <th>预定日期</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    {% comment %} {%%} {% endcomment %}
+                    <tbody>
+                        {% if reserve_books %}
+                            {% for reserve_book in reserve_books %}
+                                <tr>
+                                    <td>{{ reserve_book.book.bookname }}</td>
+                                    <td>{{ reserve_book.book.author }}</td>
+                                    <td>{{ reserve_book.reservation_date }}</td>
+                                    <td>{{ reserve_book.get_status_display }}</td>
+                                    <td>
+                                        <form style='display: inline-block;' method="post" action="{% url 'demo:reserve_cancel' reserve_book.book.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">取消预定</button>
+                                        </form>
+                                        <form style='display: inline-block;' method="post" action="{% url 'demo:borrow_book' reserve_book.book.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">借阅</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+                <h2>借出书籍情况</h2>
+                <table class="book-table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>借出时间</th>
+                            <th>最晚归还时间</th>
+                            <th>是否归还</th>
+                            <th>操作</th>
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        {% if borrow_books %}
+                            {% for borrow_book in borrow_books %}
+                                <tr>
+                                    <td>{{ borrow_book.book.bookname }}</td>
+                                    <td>{{ borrow_book.borrow_date }}</td>
+                                    <td>{{ borrow_book.due_date }}</td>
+                                    {% load tz %}
+                                    {% now "Y-m-d" as todays_date %}
+                                    <td>
+                                        {% if borrow_book.return_date %}
+                                            已经归还
+                                        {% else %}
+                                            {% if borrow_book.due_date|date:'Y-m-d' < todays_date %}
+                                                <span style="color: red;">逾期未归还</span>
+                                            {% else%}
+                                                未归还
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if borrow_book.return_date %}
+                                            {% else %}
+
+                                            <form style='display: inline-block;' method="post" action="{% url 'demo:return_book' borrow_book.book.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary">归还</button>
+                                            </form>
+                                            
+                                        {% endif %}
+                                       
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+
+                <h2>违规信息</h2>
+                <table class="book-table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>违规原因</th>
+                            <th>违规时间</th>
+                            <th>罚款金额</th>
+                            <th>是否缴纳</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if vio_books%}
+                            {% for vio_book in vio_books %}
+                                <tr>
+                                    <td>{{ vio_book.violation_description }}</td>
+                                    <td>{{ vio_book.return_date }}</td>
+                                    <td>tobe done</td>
+                                    <td>tobe done </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                                    
+                    
+                </table>
+
+            </section>  
+        </div>
+
+
+
+
+    </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+            <script>src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"</script>
+            <script>src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"</script>
+
+</body>
+</html>

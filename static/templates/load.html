@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>Library - Login</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="shortcut icon" href="/static/img/ustcblack.jpg">
+    {% comment %} <link rel="stylesheet" href="/static/css/graindashboard.css"> {% endcomment %}
+    {% comment %} <link href="/static/css/video-js.css" rel="stylesheet"> {% endcomment %}
+    {% comment %} <link rel="stylesheet" href="/static/css/bootstrap-datepicker.css"> {% endcomment %}
+    {% comment %} <link rel="stylesheet" href="/static/css/my.css"> {% endcomment %}
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body class="has-sidebar has-fixed-sidebar-and-header">
+    <main class="main">
+        <section id="login" class="container">
+            <h2 class="mt-4">Login</h2>
+            <form class="mb-4" id="loginForm" action="{% url 'demo:login' %}" method = "get">
+            {% comment %} <form class="mb-4" id="loginForm">  {% endcomment %}
+                {% comment %} {% csrf_token %} {% endcomment %}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" value="{{ userid }}">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+                </div>
+                <div class="form-group" style="color: red">{{ msg }}</div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <a href="{% url 'demo:register' %}" class="btn btn-secondary">Register</a>
+            </form>
+        </section>
+    </main>
+
+
+    <script>src="/static/js/bootstrap.min.js"</script>
+    <script>src="/static/css/bootstrap.min.css"</script>
+
+
+</body>
+</html>

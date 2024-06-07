@@ -1,0 +1,224 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>Library - Book Search and Borrow</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="shortcut icon" href="/static/img/ustcblack.jpg">
+    <link rel="stylesheet" href="/static/css/bootstrap-grid.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    {% comment %} <link rel="stylesheet" href="/static/css/sidebar.css"> {% endcomment %}
+    <link rel="stylesheet" href="/static/css/styles.css">
+    {% comment %} <link href="/static/css/video-js.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/bootstrap-datepicker.css">
+    <link rel="stylesheet" href="/static/css/my.css"> {% endcomment %}
+</head>
+<body class="has-sidebar has-fixed-sidebar-and-header">
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar-->
+        <div class="border-end bg-white" id="sidebar-wrapper">
+            <div class="sidebar-heading border-bottom bg-light">
+                <img src="/static/img/ustcblack.jpg" alt="Book Image"  style="width: 50px; height: 50px;">
+                USTC Guest
+            </div>
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/home/">home</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="books">BOOKS</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="Person">借阅信息</a>
+            </div>
+        </div>
+        <div id="page-content-wrapper">
+            <!-- Top navigation-->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="sidebarToggle">Toggle Menu</button>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                            <li class="nav-item active"><a class="nav-link" href="#!">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#!">Link</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="#!">Action</a>
+                                    <a class="dropdown-item" href="#!">Another action</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/home/logout">退出登入</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+        <section id="bookSearch" class="container-fluid">
+            <h2 class="mt-4">Search Books</h2>
+            <form class="mb-4" id="searchForm" action="{% url 'book_search' %}" method = "get">
+                <div class="form-group">
+                    <label for="searchQuery">Book Title or Author</label>
+                    <input type="text" class="form-control" id="searchQuery" name="searchQuery" placeholder="Enter book title or author">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+            <div id="searchResults">
+                <!-- Search results will be displayed here -->
+            </div>
+            <table class="book-table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>photo</th>
+                        <th>title</th>
+                        <th>author</th>
+                        <th>type</th>
+                        <th>abstract</th>
+                        <th>num</th>
+                        <th>More Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <!-- Add more book rows here -->
+                    {% if books %}
+                    <tr>
+                    <tr>
+                        {% for book in books %}
+                        <td><img src={{book.image_url}} alt="Book Image"  style="width: 100px; height: 100px;"> </td>
+                        <td>{{ book.bookname }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.book_type }}</td> 
+                        <td>{{book.abstract}}</td>
+                        <td>{{book.num}}</td>
+                        <td>
+                            <form method="post" action="{% url 'demo:reserve' book.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-success" type="submit" onclick="borrowBook('{{ book.title }}')">Reserve</button>
+                            </form>
+                            
+                            <!-- Scrollable modal -->
+<!-- Button trigger modal -->
+                                <button class="btn btn-sm  btn-outline-secondary" type="button " data-bs-toggle="modal" data-bs-target="#reviewModal{{book.id}}">addReview</button>
+                                <div class="modal fade" id="reviewModal{{book.id}}" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                        <h5 class="modal-title" id="reviewModalLabel">Write a review</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                        <form action="{% url 'demo:add_review' book.id %}" method="post">
+                                            {% csrf_token %}
+                                            <!-- Add your form fields here -->
+                                            <div class="form-group">
+                                            <label for="rating">Rating</label>
+                                            <input type="number" class="form-control" id="rating" name="rating">
+                                            </div>
+                                            <div class="form-group">
+                                            <label for="comment">Comment</label>
+                                            <textarea class="form-control" id="comment" name="comment"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </form>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- trigger modal -->
+                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#myModal{{book.id}}">
+                                Comments
+                                </button>
+                                
+                                <!-- Modal-review -->
+                                <div class="modal fade" id="myModal{{book.id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                    <h5 class="modal-title" id="staticBackdropLabel">{{book.bookname}}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                                            </div>
+                                            
+                                        <div class="modal-body">
+                                            {%if book.review_set.all%}
+
+                                                {%for review in book.review_set.all%}
+                                                    <div class="card">
+                                                    <div class="card-body">
+                                                    <h5 class="card-title">{{review.user.name}}</h5>
+                                                    <p class="card-text">Rating: {{ review.rating }}</p>
+                                                    <p class="card-text">{{review.comment}}</p>
+                                                    </div>
+                                                    </div>
+                                                {%endfor%}
+                                            {%endif%}
+
+                                        </div>
+                                        <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                {% comment %} <button type="button" class="btn btn-primary">Understood</button> {% endcomment %}
+                                <form action="{% url 'demo:delete_review' book.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Delete</button>
+                                </form>
+                                
+                                </div>
+                            </div>
+                        </div>
+                                {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">Write a review</button> {% endcomment %}
+
+                            <!--modal-->
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {%endif%}
+                </tbody>
+            </table>
+        </body>
+        </section>
+
+
+
+        <section id="booklist" class="scrollable-section">
+            <h2 class="mt-4">Books</h2>
+            <div id="booklist">
+                <!-- List of books will be displayed here -->
+                {% if books %}
+                    <ul>
+                    {% for book in books %}
+                    
+                        <li class="book">
+                            
+                            <h3>{{ book.bookname }}</h3>
+                            
+                            <button class="btn btn-sm btn-success" onclick="borrowBook('{{ book.title }}')">Borrow</button>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {%endif%}
+            </div>
+
+        </section>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"</script>
+    <script>src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"</script>
+    <script>
+        var myModal = document.getElementById('myModal')
+        var myInput = document.getElementById('myInput')
+
+        myModal.addEventListener('shown.bs.modal', function () {
+            myInput.focus()
+        }) 
+
+    </script>
+
+</body>
+</html>
+
+
+
