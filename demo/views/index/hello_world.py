@@ -55,6 +55,14 @@ def index(request):
     # 查询自己的预定记录
     if request.session.get('user_type') == 'student':
         pre_check(request)
+        user_id = request.session.get('user_id')
+        # user_id = User.objects.get(user_id=user_id).id
+        user_ = User.objects.get(user_id=user_id)
+        # user_ = User.objects.get(id=id)
+        print(user_.avatar.url)
+        context['user'] = user_
+    else:
+        context['user'] = None
     return render(request,'index.html',context)
 def load_in(request):
     return render(request,'load.html')

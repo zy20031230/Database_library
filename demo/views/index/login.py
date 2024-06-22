@@ -32,6 +32,7 @@ def login_view(request):  # 读者、管理员用户登录
                 request.session['user_id'] = result[0].user_id
                 request.session['username'] = result[0].name
                 request.session['user_type'] = 'student'
+                
                 return redirect('demo:home')
             else:
                 context["msg"] = "用户名或密码错误"
@@ -83,18 +84,47 @@ def register(request):
             load_name=username,
             name=nickname,
             password=make_password(password),
-            relation_phone=contact
+            relation_phone=contact,
+            avatar = 'avatars/ustcblack.jpg'
         )
         # 保存注册的用户信息
         new_user.save()
         context["msg"] = "注册成功:"+"可通过学号登入"
         return render(request, 'load.html', context=context)
 
-def User_profile(request):
+# def User_profile(request):
+    # if not request.session.get('user_type'):
+    #     return redirect('demo:login')
+    # user_id = request.session.get('user_id')
+    # user_id = User.objects.get(user_id=user_id).id
+    # User_ = User.objects.get(id=user_id)
+def profile_view(request):
     if not request.session.get('user_type'):
         return redirect('demo:login')
     user_id = request.session.get('user_id')
     user_id = User.objects.get(user_id=user_id).id
-    User_ = User.objects.get(id=user_id)
-    
+    context = {}
+    if request.method == 'GET':
+        context['form'] = User.objects.get(id=user_id)
+    if request.method == 'POST':
+        print('hello')
+        user_ = User.objects.get(id=user_id)
+        # user_.name = request.POST.get('name')
+        if request.POST.get('name'):
+            user_.name = request.POST.get('name')
+        if request.POST.get('contact'):
+            user_.relation_phone = request.POST.get('contact')
+        if request.POST.get('password'):
+            user_.password= make_password( request.POST.get('password'))
+        # user_.save()
+        if request.FILES.get('avatar'):
+            user_.avatar = request.FILES.get('avatar')
+            # print('hello')
+        # context['form'] = user_
+        user_.save()
+        context['form'] = user_
+    # context
+
+    return render(request,'profile.html',context=context)
+
         

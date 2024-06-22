@@ -6,7 +6,7 @@ from demo.models import User,Book,Review, UserViolation,Reservation,BorrowingRec
 from datetime import datetime, timedelta
 from demo.views.index.hello_world import vio_type, pre_check
 from django.db.models import Case, When, Value, IntegerField
-
+from django.db import transaction
 def person_init(request):
     # print('hll')
     # print(request.session.get('user_id'))
@@ -15,6 +15,8 @@ def person_init(request):
     pre_check(request)
     context = {}
     user_id = request.session.get('user_id')
+    user_ = User.objects.get(user_id=user_id)
+    context['user'] = user_
     user_id = User.objects.get(user_id=user_id).id
     # 获得user_id 正在预定的书籍
     reserve_books = Reservation.objects.filter(user_id=user_id)
@@ -32,7 +34,7 @@ def person_init(request):
     # 查看是否有违规记录
     vio_books = UserViolation.objects.filter(user_id=user_id)
     context['vio_books'] = vio_books
-    
+
 
     return render(request,'Person.html',context=context)
     # if reserve_books.exists():
@@ -58,7 +60,7 @@ def reserve_cancel(request,book_id):
     book_.save()
     reserve_book.delete()
     return HttpResponse('取消预定成功')
-
+@transaction.atomic
 def borrow_book(request,book_id):
 
     user_id = request.session.get('user_id')
@@ -69,7 +71,7 @@ def borrow_book(request,book_id):
     borrow_.save()
     reserve_book.delete()
     return HttpResponse('借阅成功')
-
+@transaction.atomic
 def return_book(request,book_id):
     user_id = request.session.get('user_id')
     user_id = User.objects.get(user_id=user_id).id

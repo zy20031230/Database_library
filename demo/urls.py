@@ -1,5 +1,7 @@
 from django.urls import path
 from demo import views
+from django.conf import settings
+from django.conf.urls.static import static
 # from views.index import review
 
 app_name = "demo"
@@ -21,4 +23,5 @@ urlpatterns = [
     path('borrow_book/<int:book_id>', views.index.reserve.borrow_book, name='borrow_book'),
     # path('')
     path('home/return_book/<int:book_id>', views.index.reserve.return_book, name='return_book'),
-]
+    path('home/profile/', views.index.login.profile_view, name='profile')
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
